@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Milestone</title>
+
+<!-- PWA: manifest + theme -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#15140F">
+
+<!-- iOS home screen support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Milestone">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --page:#F2F0EA;
+    --card:#FFFFFF;
+    --card-line: rgba(20,20,18,0.07);
+    --ink:#17170F;
+    --sub:#8B8A82;
+    --hero:#15140F;
+    --hero-sub: rgba(255,255,255,0.55);
+    --hero-line: rgba(255,255,255,0.12);
+    --accent:#2E7D5B;
+    --accent-soft: rgba(46,125,91,0.12);
+    --danger:#B5533C;
+    --danger-soft: rgba(181,83,60,0.10);
+    --khaki:#C9BFA8;
+    --radius: 26px;
+    --radius-sm: 16px;
+  }
+  body[data-theme="dark"]{
+    --page:#121210;
+    --card:#1C1B17;
+    --card-line: rgba(255,255,255,0.08);
+    --ink:#F2F0EA;
+    --sub:#9C9B92;
+    --hero:#232019;
+    --hero-sub: rgba(255,255,255,0.55);
+    --hero-line: rgba(255,255,255,0.12);
+    --accent:#3FA179;
+    --accent-soft: rgba(63,161,121,0.18);
+    --danger:#D96A4E;
+    --danger-soft: rgba(217,106,78,0.16);
+    --khaki:#6B6355;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--page);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    transition: background .3s ease, color .3s ease;
+  }
+  #app{
+    width:100%;
+    max-width: 480px;
+    min-height:100vh;
+    padding: 18px 16px calc(110px + env(safe-area-inset-bottom));
+    position:relative;
+  }
+  button{ font-family: inherit; }
+
+  /* ---------- Top header ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin: 4px 2px 18px;
+  }
+  .who{ display:flex; align-items:center; gap:11px; }
+  .avatar{
+    width:44px; height:44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #23221b, var(--hero) 70%);
+    box-shadow: 0 3px 8px rgba(20,20,18,0.18);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:650; font-size:16px;
+    flex-shrink:0;
+  }
+  .who .txt .hi{ font-size:13px; color:var(--sub); font-weight:500; }
+  .who .txt .name{ font-size:16.5px; font-weight:650; margin-top:1px; }
+  .bell{
+    width:42px; height:42px;
+    border-radius:50%;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink);
+    cursor:pointer;
+  }
+  .bell svg{ width:18px; height:18px; }
+
+  /* ---------- Goal chip row (multi-goal switcher) ---------- */
+  .goal-chip-row{
+    display:flex; gap:8px; overflow-x:auto;
+    margin: 0 2px 16px; padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .goal-chip-row::-webkit-scrollbar{ display:none; }
+  .goal-chip{
+    flex-shrink:0; display:flex; align-items:center; gap:7px;
+    background: var(--card); border:1px solid var(--card-line);
+    border-radius:20px; padding:9px 15px;
+    font-size:13px; font-weight:650; color:var(--sub);
+    cursor:pointer; white-space:nowrap;
+  }
+  .goal-chip .pct{ font-size:11px; opacity:0.7; font-weight:700; }
+  .goal-chip.active{ background: var(--hero); color:#fff; border-color:var(--hero); }
+  .goal-chip.active .pct{ opacity:0.85; }
+  .goal-chip.add{
+    color: var(--accent); background: var(--accent-soft);
+    border-color: rgba(46,125,91,0.18);
+  }
+  .goal-chip.add svg{ width:13px; height:13px; }
+
+  /* ---------- Hero card ---------- */
+  .hero{
+    background: linear-gradient(160deg, #201f19, var(--hero) 55%);
+    border-radius: var(--radius);
+    padding: 22px 20px 20px;
+    color:#fff;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 14px 28px -14px rgba(20,20,18,0.35);
+  }
+  .hero::after{
+    content:'';
+    position:absolute; top:-60px; right:-40px;
+    width:160px; height:160px; border-radius:50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity:0.16; pointer-events:none;
+  }
+  .hero > *{ position:relative; z-index:1; }
+  .hero-top{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 10px;
+  }
+  .hero-label{ font-size:13px; color: var(--hero-sub); font-weight:500; }
+  .hero-top-actions{ display:flex; align-items:center; gap:8px; }
+  .eye-btn, .cur-btn{
+    width:30px; height:30px; border-radius:50%;
+    background: rgba(255,255,255,0.08);
+    border:none; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .cur-btn{ font-size:12.5px; font-weight:750; }
+  .eye-btn svg{ width:15px; height:15px; }
+  .hero-amount{
+    font-size: 36px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-sub-row{
+    display:flex; align-items:center; gap:8px;
+    margin-bottom: 10px;
+  }
+  .hero-sub-row .of{ font-size:13.5px; color: var(--hero-sub); }
+  .hero-pct{
+    font-size:12px; font-weight:650; color:#fff;
+    background: rgba(255,255,255,0.14);
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .hero-fx-note{
+    font-size:11.5px; color: var(--hero-sub);
+    margin-bottom: 14px;
+  }
+  .hero-actions{ display:flex; gap:10px; }
+  .hero-btn{
+    flex:1;
+    border:none;
+    border-radius: 15px;
+    padding: 14px 0;
+    font-size: 14.5px;
+    font-weight: 650;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    cursor:pointer;
+  }
+  .hero-btn.primary{ background:#fff; color: var(--hero); box-shadow: 0 6px 14px -6px rgba(0,0,0,0.35); }
+  .hero-btn.ghost{ background: rgba(255,255,255,0.1); color:#fff; border:1px solid var(--hero-line); }
+  .hero-btn:active{ transform: scale(0.97); }
+  .hero-btn svg{ width:14px; height:14px; }
+
+  /* ---------- Section headers ---------- */
+  .sec-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin: 22px 4px 10px;
+  }
+  .sec-head .t{ font-size:15px; font-weight:650; position:relative; padding-left:11px; }
+  .sec-head .t::before{
+    content:''; position:absolute; left:0; top:50%; transform:translateY(-50%);
+    width:4px; height:14px; border-radius:3px; background: var(--accent);
+  }
+  .sec-head .see{ font-size:13px; color: var(--sub); font-weight:600; background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:2px; }
+  .sec-head .see svg{ width:13px; height:13px; }
+
+  /* ---------- Generic card ---------- */
+  .card{
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: var(--radius);
+    padding: 18px 18px;
+    box-shadow: 0 1px 2px rgba(20,20,18,0.03), 0 8px 20px -12px rgba(20,20,18,0.10);
+  }
+
+  /* ---------- Stepper (goal progress) ---------- */
+  .stepper-row{
+    display:flex; align-items:center; margin-bottom: 6px;
+  }
+  .step-dot{
+    width:20px; height:20px; border-radius:50%;
+    background: var(--card); border:2px solid var(--khaki);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; z-index:2;
+  }
+  .step-dot.on{ background: var(--accent); border-color: var(--accent); }
+  .step-dot svg{ width:10px; height:10px; stroke:#fff; }
+  .step-line{
+    flex:1; height:3px; background: var(--card-line); margin:0 4px; border-radius:2px; overflow:hidden; position:relative;
+  }
+  .step-line .fill{ position:absolute; inset:0; background: var(--accent); width:0%; transition: width 1s cubic-bezier(.22,.85,.34,1); }
+  .stepper-labels{ display:flex; justify-content:space-between; margin-top:8px; }
+  .stepper-labels .lb{ font-size:11.5px; color:var(--sub); text-align:center; width:64px; }
+  .stepper-labels .lb:last-child{ text-align:right; }
+  .stepper-labels .lb:first-child{ text-align:left; }
+  .stepper-labels .lb b{ display:block; color:var(--ink); font-size:12.5px; margin-top:1px; }
+
+  .track-row{
+    display:flex; justify-content:space-between; margin-top:16px; padding-top:14px; border-top:1px solid var(--card-line);
+  }
+  .track-block .label{ font-size:11.5px; color:var(--sub); margin-bottom:3px; }
+  .track-block .value{ font-size:14.5px; font-weight:650; }
+  .track-block.right{ text-align:right; }
+
+  /* ---------- Chart card ---------- */
+  .chart-empty{ color: var(--sub); font-size:13.5px; text-align:center; padding: 22px 6px; }
+
+  /* ---------- Activity rows ---------- */
+  .activity-card{ padding:0; overflow:hidden; }
+  .activity-row{
+    display:flex; align-items:center; gap:12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--card-line);
+  }
+  .activity-row:last-child{ border-bottom:none; }
+  .a-icon{
+    width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .a-icon.saving{ background: var(--accent-soft); color: var(--accent); }
+  .a-icon.expense{ background: var(--danger-soft); color: var(--danger); }
+  .a-icon svg{ width:16px; height:16px; }
+  .a-mid{ flex:1; min-width:0; }
+  .a-note{ font-size:14.5px; font-weight:600; }
+  .a-date{ font-size:12px; color: var(--sub); margin-top:2px; }
+  .a-right{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .a-amount{ font-size:14.5px; font-weight:700; font-variant-numeric: tabular-nums; }
+  .a-amount.saving{ color: var(--accent); }
+  .a-amount.expense{ color: var(--danger); }
+  .badge{
+    font-size:10.5px; font-weight:700; padding:2.5px 8px; border-radius:20px;
+    letter-spacing:0.02em;
+  }
+  .badge.saving{ background: var(--accent-soft); color: var(--accent); }
+  .badge.expense{ background: var(--danger-soft); color: var(--danger); }
+  .a-del{
+    width:24px; height:24px; border-radius:50%;
+    border:none; background:transparent; color:var(--sub);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .a-del svg{ width:12px; height:12px; }
+
+  .empty-state{ text-align:center; color: var(--sub); font-size:14px; padding: 34px 16px; line-height:1.5; }
+  .empty-state svg{ width:30px; height:30px; margin-bottom:10px; opacity:0.4; }
+
+  /* ---------- Filter tabs (Activity page) ---------- */
+  .filter-row{ display:flex; gap:8px; margin: 4px 2px 16px; }
+  .filter-chip{
+    border:1px solid var(--card-line); background: var(--card);
+    padding: 8px 15px; border-radius: 20px; font-size:13px; font-weight:600; color: var(--sub);
+    cursor:pointer;
+  }
+  .filter-chip.active{ background: var(--hero); color:#fff; border-color: var(--hero); }
+
+  .search-row{
+    display:flex; align-items:center; gap:10px;
+    background: var(--card); border:1px solid var(--card-line);
+    border-radius: 16px; padding: 12px 14px; margin: 0 2px 16px;
+  }
+  .search-row svg{ width:16px; height:16px; color: var(--sub); flex-shrink:0; }
+  .search-row input{
+    border:none; outline:none; background:none; font-size:14.5px; width:100%; color:var(--ink); font-family:inherit;
+  }
+
+  /* ---------- Settings page ---------- */
+  .settings-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 15px 4px; border-bottom: 1px solid var(--card-line);
+    cursor:pointer;
+  }
+  .settings-row:last-child{ border-bottom:none; }
+  .settings-row .lbl{ font-size:15px; font-weight:600; }
+  .settings-row .sub{ font-size:12.5px; color:var(--sub); margin-top:2px; }
+  .settings-row svg{ width:16px; height:16px; color:var(--sub); }
+  .settings-row.danger .lbl{ color: var(--danger); }
+  .settings-row .row-main{ flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; }
+  .settings-row .g-del{
+    width:26px; height:26px; border-radius:50%; border:none; background:transparent;
+    color:var(--sub); display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:8px; flex-shrink:0;
+  }
+  .settings-row .g-del svg{ width:13px; height:13px; }
+  .settings-row.add-goal .lbl{ color: var(--accent); }
+
+  /* ---------- Currency section ---------- */
+  .cur-switch{ display:flex; gap:8px; padding: 10px 4px 16px; }
+  .cur-opt, .theme-opt{
+    flex:1; text-align:center; padding:11px 0; border-radius:13px;
+    border:1px solid var(--card-line); background: var(--card);
+    font-size:13.5px; font-weight:650; color:var(--sub); cursor:pointer;
+  }
+  .cur-opt.active, .theme-opt.active{ background: var(--hero); color:#fff; border-color: var(--hero); }
+  .fx-row{ display:flex; align-items:center; justify-content:space-between; padding:14px 4px; }
+  .fx-rate{ font-size:18px; font-weight:700; font-variant-numeric: tabular-nums; }
+  .fx-meta{ font-size:11.5px; color:var(--sub); margin-top:3px; }
+  .fx-refresh{
+    background: var(--accent-soft); color: var(--accent); border:none;
+    border-radius:12px; padding:9px 14px; font-size:12.5px; font-weight:650; cursor:pointer; flex-shrink:0;
+  }
+  .fx-refresh:disabled{ opacity:0.55; }
+  .fx-manual{ padding: 4px 4px 14px; border-top:1px solid var(--card-line); }
+  .fx-manual .lbl{ font-size:12.5px; color:var(--sub); font-weight:600; margin:12px 0 8px; }
+  .fx-manual-row{ display:flex; gap:8px; }
+  .fx-manual-row input{
+    flex:1; padding:11px 12px; border-radius:12px; border:1px solid var(--card-line);
+    background: var(--card); font-size:14.5px; color:var(--ink); font-family:inherit; outline:none;
+  }
+  .fx-manual-row button{
+    background: var(--hero); color:#fff; border:none; border-radius:12px; padding:0 16px; font-size:13px; font-weight:650; cursor:pointer;
+  }
+
+  /* ---------- Bottom nav ---------- */
+  .navbar{
+    position:fixed; bottom: 18px; left:50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 448px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 26px;
+    display:flex;
+    padding: 8px;
+    box-shadow: 0 14px 30px rgba(20,20,18,0.10);
+    z-index: 40;
+  }
+  .nav-item{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding: 9px 0;
+    border-radius: 18px;
+    background:none; border:none; cursor:pointer;
+    color: var(--sub);
+    transition: background .2s ease, color .2s ease;
+  }
+  .nav-item svg{ width:19px; height:19px; }
+  .nav-item .lb{ font-size:10.5px; font-weight:650; }
+  .nav-item.active{ background: var(--hero); color:#fff; }
+
+  /* ---------- Welcome ---------- */
+  .welcome{
+    min-height: calc(100vh - 36px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 0 8px;
+  }
+  .welcome .mark{
+    width:82px; height:82px; border-radius: 24px;
+    background: var(--hero);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom: 24px;
+  }
+  .welcome .mark svg{ width:36px; height:36px; stroke:#fff; }
+  .welcome .brand{ font-size: 29px; font-weight:700; letter-spacing:-0.02em; margin-bottom:8px; }
+  .welcome .tagline{ font-size:15px; color:var(--sub); max-width:260px; line-height:1.5; margin-bottom:36px; }
+  .welcome .feat-row{ display:flex; gap:9px; margin-bottom:40px; flex-wrap:wrap; justify-content:center; }
+  .welcome .feat-chip{ background: var(--card); border:1px solid var(--card-line); border-radius:20px; padding:7px 13px; font-size:12px; font-weight:600; }
+  .welcome .cta{
+    width:100%; max-width:320px; background: var(--hero); color:#fff; border:none;
+    border-radius:16px; padding:16px 0; font-size:16px; font-weight:650; cursor:pointer;
+  }
+  .welcome .cta:active{ transform: scale(0.98); }
+
+  /* ---------- App-like motion: page transitions ---------- */
+  @keyframes pageFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes itemRiseIn{ from{ opacity:0; transform: translateY(12px); } to{ opacity:1; transform: translateY(0); } }
+  @keyframes navPop{ 0%{ transform: scale(1); } 45%{ transform: scale(1.22); } 100%{ transform: scale(1); } }
+  @keyframes popIn{ from{ opacity:0; transform: scale(0.9); } to{ opacity:1; transform: scale(1); } }
+  @keyframes shimmer{ 0%{ background-position: -200px 0; } 100%{ background-position: 200px 0; } }
+
+  .page{ animation: pageFadeIn .22s ease both; }
+  .page > *{ animation: itemRiseIn .42s cubic-bezier(.22,.85,.34,1) both; }
+  .page > *:nth-child(1){ animation-delay: 0ms; }
+  .page > *:nth-child(2){ animation-delay: 40ms; }
+  .page > *:nth-child(3){ animation-delay: 80ms; }
+  .page > *:nth-child(4){ animation-delay: 120ms; }
+  .page > *:nth-child(5){ animation-delay: 160ms; }
+  .page > *:nth-child(6){ animation-delay: 200ms; }
+  .page > *:nth-child(7){ animation-delay: 240ms; }
+  .page > *:nth-child(8){ animation-delay: 280ms; }
+  .page > *:nth-child(n+9){ animation-delay: 300ms; }
+
+  /* Snappy tap feedback across all interactive elements */
+  button, .goal-chip, .filter-chip, .cur-opt, .amt-cur-btn, .nav-item,
+  .settings-row, .a-del, .g-del, .eye-btn, .cur-btn, .bell{
+    transition: transform .15s cubic-bezier(.22,.85,.34,1), background .2s ease, color .2s ease, opacity .2s ease;
+  }
+  button:active, .goal-chip:active, .filter-chip:active, .cur-opt:active,
+  .amt-cur-btn:active, .nav-item:active, .a-del:active, .g-del:active,
+  .eye-btn:active, .cur-btn:active, .bell:active{
+    transform: scale(0.93);
+  }
+  .settings-row:active{ background: var(--card-line); }
+  .sheet-btn:active{ transform: scale(0.96); }
+  .fx-refresh:active{ transform: scale(0.95); }
+
+  /* Bottom nav: icon pops when it becomes the active tab */
+  .nav-item.active svg{ animation: navPop .38s cubic-bezier(.34,1.56,.64,1); }
+
+  /* Modal sheet: soften the pop of its inner content once it lands */
+  .overlay.show .sheet > *{ animation: itemRiseIn .32s cubic-bezier(.22,.85,.34,1) both; }
+  .overlay.show .sheet > *:nth-child(2){ animation-delay: 30ms; }
+  .overlay.show .sheet > *:nth-child(3){ animation-delay: 60ms; }
+  .overlay.show .sheet > *:nth-child(4){ animation-delay: 90ms; }
+
+  /* Goal chip row: each chip pops in on first paint */
+  .goal-chip-row .goal-chip{ animation: popIn .3s cubic-bezier(.34,1.56,.64,1) both; }
+  .goal-chip-row .goal-chip:nth-child(1){ animation-delay: 0ms; }
+  .goal-chip-row .goal-chip:nth-child(2){ animation-delay: 30ms; }
+  .goal-chip-row .goal-chip:nth-child(3){ animation-delay: 60ms; }
+  .goal-chip-row .goal-chip:nth-child(4){ animation-delay: 90ms; }
+  .goal-chip-row .goal-chip:nth-child(n+5){ animation-delay: 110ms; }
+
+  /* Activity rows slide in from the side, one after another */
+  .activity-card .activity-row{ animation: itemRiseIn .34s cubic-bezier(.22,.85,.34,1) both; }
+  .activity-card .activity-row:nth-child(1){ animation-delay: 0ms; }
+  .activity-card .activity-row:nth-child(2){ animation-delay: 35ms; }
+  .activity-card .activity-row:nth-child(3){ animation-delay: 70ms; }
+  .activity-card .activity-row:nth-child(4){ animation-delay: 105ms; }
+  .activity-card .activity-row:nth-child(n+5){ animation-delay: 130ms; }
+
+  /* Toast: a touch of spring instead of a flat fade */
+  .toast.show{ transform: translateX(-50%) translateY(0) !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    .page, .page > *, .nav-item.active svg, .overlay.show .sheet > *,
+    .goal-chip-row .goal-chip, .activity-card .activity-row{ animation: none !important; }
+  }
+
+  /* ---------- Streak badge (hero) ---------- */
+  .streak-note{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:12px; color:#fff; font-weight:650;
+    background: rgba(255,255,255,0.12);
+    padding: 5px 11px; border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  /* ---------- Quick-add amount chips (entry sheet) ---------- */
+  .quick-amt-row{ display:flex; gap:6px; margin-top:9px; flex-wrap:wrap; }
+  .quick-amt-chip{
+    border:1px solid var(--card-line); background: var(--card); color: var(--ink);
+    font-size:12.5px; font-weight:650; padding:7px 13px; border-radius:20px; cursor:pointer;
+  }
+  .quick-amt-chip:active{ transform:scale(0.93); background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- Confetti burst (milestone celebration) ---------- */
+  .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden; }
+  .confetti-piece{ position:absolute; top:-20px; border-radius:2px; opacity:0.95; animation: confettiFall linear forwards; }
+  @keyframes confettiFall{ to{ transform: translateY(112vh) rotate(560deg); opacity:0; } }
+
+  /* ---------- Data buttons (settings) ---------- */
+  .data-btn-row{ display:flex; gap:8px; padding: 4px 4px 10px; }
+  .data-btn{
+    flex:1; text-align:center; padding:12px 0; border-radius:13px;
+    border:1px solid var(--card-line); background: var(--card);
+    font-size:13px; font-weight:650; color: var(--ink); cursor:pointer;
+  }
+  .data-btn:active{ transform: scale(0.96); }
+
+  /* ---------- Setup ---------- */
+  .setup-wrap{ min-height: calc(100vh - 36px); display:flex; flex-direction:column; justify-content:center; }
+  .setup-wrap h1{ font-size:24px; text-align:center; margin: 0 0 26px; letter-spacing:-0.01em; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12.5px; color:var(--sub); margin-bottom:6px; font-weight:600; }
+  .field input{
+    width:100%; padding:13px 14px; border-radius:14px;
+    border:1px solid var(--card-line); background: var(--card);
+    font-size:16px; color:var(--ink); font-family:inherit; outline:none;
+  }
+  .field input:focus{ border-color: var(--hero); }
+  .err-msg{ color: var(--danger); font-size:13px; margin-top:-6px; margin-bottom:10px; display:none; }
+  .primary-btn{
+    width:100%; background: var(--hero); color:#fff; border:none;
+    border-radius:16px; padding:15px 0; font-size:15.5px; font-weight:650; cursor:pointer; margin-top:6px;
+  }
+  .primary-btn:active{ transform: scale(0.98); }
+
+  /* ---------- Amount currency toggle (entry sheet) ---------- */
+  .amt-cur-row{ display:flex; gap:8px; margin-top:8px; }
+  .amt-cur-btn{
+    flex:1; padding:9px 0; text-align:center; border-radius:11px;
+    border:1px solid var(--card-line); background: var(--card);
+    font-size:12.5px; font-weight:650; color:var(--sub); cursor:pointer;
+  }
+  .amt-cur-btn.active{ background: var(--hero); color:#fff; border-color: var(--hero); }
+  .amt-conv-hint{ font-size:12px; color:var(--sub); margin-top:7px; }
+
+  /* ---------- Modal sheet ---------- */
+  .overlay{
+    position:fixed; inset:0; background: rgba(20,20,18,0.35);
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition: opacity .2s ease; z-index:50;
+  }
+  .overlay.show{ opacity:1; pointer-events:all; }
+  .sheet{
+    background: var(--page); width:100%; max-width:480px;
+    border-radius: 26px 26px 0 0; padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform .28s cubic-bezier(.22,.85,.34,1);
+    max-height: 88vh; overflow-y:auto;
+  }
+  .overlay.show .sheet{ transform: translateY(0); }
+  .sheet-handle{ width:36px; height:4px; background: var(--khaki); border-radius:4px; margin:0 auto 16px; }
+  .sheet h2{ font-size:19px; margin:0 0 16px; font-weight:650; }
+  .sheet-actions{ display:flex; gap:10px; margin-top:18px; }
+  .sheet-btn{ flex:1; border:none; border-radius:16px; padding:14px 0; font-size:15px; font-weight:650; cursor:pointer; }
+  .sheet-btn.primary{ background: var(--hero); color:#fff; }
+  .sheet-btn.primary.danger{ background: var(--danger); }
+  .sheet-btn.secondary{ background: var(--card); color: var(--ink); border:1px solid var(--card-line); }
+
+  .toast{
+    position:fixed; bottom: 100px; left:50%; transform: translateX(-50%) translateY(20px);
+    background: var(--hero); color:#fff; font-size:13.5px; font-weight:500;
+    padding: 11px 18px; border-radius: 30px;
+    opacity:0; transition: opacity .25s ease, transform .25s ease;
+    pointer-events:none; z-index:60; white-space:nowrap;
+    display:flex; align-items:center; gap:14px;
+    box-shadow: 0 10px 24px -8px rgba(20,20,18,0.4);
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); pointer-events:all; }
+  .toast-undo{
+    background:none; border:none; color:#6FE0AE; font-size:13.5px; font-weight:700;
+    cursor:pointer; padding:0; letter-spacing:0.01em;
+  }
+  .toast-undo:active{ opacity:0.7; }
+
+  .loading-screen{
+    position:fixed; inset:0; background:var(--page);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    color:var(--sub); font-size:13px; z-index:100;
+  }
+  .loading-screen .mark{
+    width:58px; height:58px; border-radius:18px;
+    background: linear-gradient(160deg, #201f19, var(--hero) 55%);
+    display:flex; align-items:center; justify-content:center;
+    animation: loadPulse 1.3s ease-in-out infinite;
+  }
+  .loading-screen .mark svg{ width:26px; height:26px; stroke:#fff; }
+  @keyframes loadPulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(0.92); opacity:0.75; } }
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading-screen">
+  <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4"/><path d="M4 4h13l-3 4 3 4H4"/></svg></div>
+  <div>Loading your progress…</div>
+</div>
+<div id="app" style="display:none;"></div>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============== Storage (browser localStorage — works standalone on device) ============== */
+const GOALS_KEY = 'milestone:goals';
+const OLD_GOAL_KEY = 'milestone:goal';
+const ACT_KEY = 'milestone:activities';
+const PREF_KEY = 'milestone:prefs';
+
+async function loadGoals(){
+  try{
+    const v = localStorage.getItem(GOALS_KEY);
+    if(v) return JSON.parse(v);
+    // migrate legacy single-goal format
+    const old = localStorage.getItem(OLD_GOAL_KEY);
+    if(old){
+      const g = JSON.parse(old);
+      if(g){
+        const migrated = [{ id: uid(), name: g.name, target: g.target, deadline: g.deadline, startDate: g.startDate || todayStr() }];
+        localStorage.setItem(GOALS_KEY, JSON.stringify(migrated));
+        return migrated;
+      }
+    }
+    return [];
+  }catch(e){ return []; }
+}
+async function saveGoals(list){ try{ localStorage.setItem(GOALS_KEY, JSON.stringify(list)); }catch(e){ showToast('Could not save.'); } }
+async function loadActivities(){ try{ const v = localStorage.getItem(ACT_KEY); return v ? JSON.parse(v) : []; }catch(e){ return []; } }
+async function saveActivities(list){ try{ localStorage.setItem(ACT_KEY, JSON.stringify(list)); }catch(e){ showToast('Could not save.'); } }
+async function loadPrefs(){
+  try{
+    const v = localStorage.getItem(PREF_KEY);
+    const p = v ? JSON.parse(v) : {};
+    return {
+      hideAmount: p.hideAmount || false,
+      currency: p.currency || 'PHP',
+      activeGoalId: p.activeGoalId || null,
+      fxRate: p.fxRate || 58.5,
+      fxUpdatedAt: p.fxUpdatedAt || 0,
+      fxManual: p.fxManual || false,
+      theme: p.theme === 'dark' ? 'dark' : 'light'
+    };
+  }catch(e){ return { hideAmount:false, currency:'PHP', activeGoalId:null, fxRate:58.5, fxUpdatedAt:0, fxManual:false, theme:'light' }; }
+}
+async function savePrefs(p){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(p)); }catch(e){} }
+
+/* ============== State ============== */
+let goals = [];
+let activities = [];
+let prefs = { hideAmount:false, currency:'PHP', activeGoalId:null, fxRate:58.5, fxUpdatedAt:0, fxManual:false, theme:'light' };
+let view = 'main';     // welcome | setup | main
+let tab = 'home';      // home | activity | settings
+let activityFilter = 'all'; // all | saving | expense
+let activitySearch = '';
+let fxLoading = false;
+
+/* ============== Utils ============== */
+function peso(n){ return '₱' + Math.round(n).toLocaleString('en-PH'); }
+function usd(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}); }
+function fmtShort(d){ return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric'}); }
+function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00'))/86400000); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function initials(name){
+  const parts = (name||'').trim().split(/\s+/).filter(Boolean);
+  if(parts.length===0) return '?';
+  if(parts.length===1) return parts[0][0].toUpperCase();
+  return (parts[0][0]+parts[1][0]).toUpperCase();
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer); t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* Toast with an inline Undo action — used for reversible deletes */
+function showUndoToast(msg, onUndo){
+  const t = document.getElementById('toast');
+  clearTimeout(t._timer);
+  t.innerHTML = `<span>${escapeHtml(msg)}</span><button type="button" class="toast-undo" id="toastUndoBtn">Undo</button>`;
+  t.classList.add('show');
+  const hide = ()=>t.classList.remove('show');
+  document.getElementById('toastUndoBtn').onclick = ()=>{ hide(); onUndo(); };
+  t._timer = setTimeout(hide, 4000);
+}
+
+/* ---- Goal helpers ---- */
+function activeGoal(){ return goals.find(g=>g.id===prefs.activeGoalId) || goals[0] || null; }
+function goalActivities(goalId){ return activities.filter(a=>a.goalId===goalId); }
+function totalsFor(goalId){
+  let saved=0, spent=0;
+  goalActivities(goalId).forEach(a=>{ if(a.type==='saving') saved+=a.amount; else spent+=a.amount; });
+  return { saved, spent };
+}
+
+/* ---- Currency helpers (base storage currency is always ₱) ---- */
+function toDisplay(phpAmount){
+  if(prefs.currency==='USD'){
+    return usd(phpAmount / (prefs.fxRate || 58.5));
+  }
+  return peso(phpAmount);
+}
+function timeAgo(ts){
+  if(!ts) return 'never';
+  const diff = Date.now() - ts;
+  const mins = Math.round(diff/60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.round(mins/60);
+  if(hrs < 24) return hrs + 'h ago';
+  const days = Math.round(hrs/24);
+  return days + 'd ago';
+}
+
+/* ---- Streak: consecutive days (ending today or yesterday) with a savings entry ---- */
+function computeStreak(goalId){
+  const dates = new Set(goalActivities(goalId).filter(a=>a.type==='saving').map(a=>a.date));
+  const fmt = d => d.toISOString().slice(0,10);
+  let d = new Date(todayStr()+'T00:00:00');
+  if(!dates.has(fmt(d))){
+    d.setDate(d.getDate()-1);
+    if(!dates.has(fmt(d))) return 0;
+  }
+  let streak = 0;
+  while(dates.has(fmt(d))){ streak++; d.setDate(d.getDate()-1); }
+  return streak;
+}
+
+/* ---- Haptics: short vibration bursts, silently skipped on unsupported devices ---- */
+function hapticBuzz(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){} }
+
+/* ---- Milestone celebration: confetti + toast + haptic the first time a goal crosses 25/50/75/100% ---- */
+function checkMilestones(){
+  const g = activeGoal();
+  if(!g) return;
+  const { saved } = totalsFor(g.id);
+  const pct = g.target>0 ? Math.min(100, saved/g.target*100) : 0;
+  const thresholds = [25,50,75,100];
+  const already = g.celebratedPct || 0;
+  const hit = thresholds.filter(t=> pct>=t && already<t);
+  if(hit.length){
+    const top = Math.max(...hit);
+    g.celebratedPct = top;
+    saveGoals(goals);
+    celebrate(top);
+  }
+}
+function celebrate(pct){
+  const messages = {
+    25: '🎉 Quarter of the way there!',
+    50: '🔥 Halfway to your goal!',
+    75: '🚀 So close — 75% saved!',
+    100: '🏆 Goal reached! Amazing work.'
+  };
+  showToast(messages[pct] || 'Milestone reached!');
+  spawnConfetti(pct===100 ? 60 : 34);
+  hapticBuzz(pct===100 ? [30,60,30,60,90] : [25,45,25]);
+}
+function spawnConfetti(count){
+  const layer = document.createElement('div');
+  layer.className = 'confetti-layer';
+  const colors = ['#2E7D5B','#C9BFA8','#B5533C','#E8B84B','#F2F0EA'];
+  for(let i=0;i<count;i++){
+    const p = document.createElement('span');
+    p.className = 'confetti-piece';
+    p.style.left = (Math.random()*100)+'%';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.width = (6+Math.random()*5)+'px';
+    p.style.height = (10+Math.random()*8)+'px';
+    p.style.animationDuration = (1.4+Math.random()*1.1)+'s';
+    p.style.animationDelay = (Math.random()*0.3)+'s';
+    layer.appendChild(p);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(), 2800);
+}
+
+/* ---- Theme ---- */
+async function setTheme(t){
+  prefs.theme = t === 'dark' ? 'dark' : 'light';
+  document.body.setAttribute('data-theme', prefs.theme);
+  await savePrefs(prefs);
+  render();
+}
+
+/* ---- Backup & restore ---- */
+function exportBackup(){
+  const data = { app:'Milestone', exportedAt: new Date().toISOString(), goals, activities, prefs };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `milestone-backup-${todayStr()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded');
+}
+function importBackupFile(file){
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data.goals) || !Array.isArray(data.activities)){
+        showToast('That file doesn\'t look like a Milestone backup.'); return;
+      }
+      goals = data.goals;
+      activities = data.activities;
+      if(data.prefs && typeof data.prefs === 'object') prefs = { ...prefs, ...data.prefs };
+      await saveGoals(goals);
+      await saveActivities(activities);
+      await savePrefs(prefs);
+      document.body.setAttribute('data-theme', prefs.theme==='dark' ? 'dark' : 'light');
+      view = goals.length ? 'main' : 'welcome';
+      tab = 'home';
+      render();
+      showToast('Backup restored');
+    }catch(err){
+      showToast('Could not read that file.');
+    }
+  };
+  reader.readAsText(file);
+}
+async function fetchFxRate(){
+  if(fxLoading) return false;
+  fxLoading = true;
+  try{
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if(data && data.result === 'success' && data.rates && data.rates.PHP){
+      prefs.fxRate = data.rates.PHP;
+      prefs.fxUpdatedAt = Date.now();
+      prefs.fxManual = false;
+      await savePrefs(prefs);
+      fxLoading = false;
+      return true;
+    }
+  }catch(e){ /* offline or blocked — keep last known / default rate */ }
+  fxLoading = false;
+  return false;
+}
+
+/* ============== Icons ============== */
+const ICONS = {
+  home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>`,
+  activity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 8 4-16 2 8h6"/></svg>`,
+  settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>`,
+  bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`,
+  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a15.5 15.5 0 0 1-3.1 3.9M6.6 6.6C4 8.3 2 12 2 12s3.5 7 10 7a9.9 9.9 0 0 0 4-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>`,
+  chev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`,
+  x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>`,
+  flag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4"/><path d="M4 4h13l-3 4 3 4H4"/></svg>`,
+  refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>`
+};
+
+/* ============== Router ============== */
+function render(){
+  const app = document.getElementById('app');
+
+  if(goals.length===0 && view==='welcome'){ app.innerHTML = renderWelcome(); bindWelcome(); return; }
+  if(goals.length===0){ app.innerHTML = renderSetup(); bindSetup(); return; }
+
+  let body = '';
+  if(tab==='home') body = renderHome();
+  else if(tab==='activity') body = renderActivityPage();
+  else body = renderSettingsPage();
+
+  app.innerHTML = `<div class="page">${body}</div>` + renderNav();
+  bindGlobal();
+
+  if(tab==='home'){ animateStepper(); animateHeroAmount(); checkMilestones(); }
+}
+
+/* Count the hero total up from 0 so it feels alive on every visit, not just a static number */
+function animateHeroAmount(){
+  const el = document.querySelector('.hero-amount');
+  if(!el || prefs.hideAmount) return;
+  const g = activeGoal();
+  if(!g) return;
+  const { saved } = totalsFor(g.id);
+  const duration = 550;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = toDisplay(saved * eased);
+    if(p < 1) requestAnimationFrame(tick);
+    else el.textContent = toDisplay(saved);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ============== Welcome ============== */
+function renderWelcome(){
+  return `
+    <div class="welcome">
+      <div class="mark">${ICONS.flag}</div>
+      <div class="brand">Milestone</div>
+      <div class="tagline">Set a target, log what you save, and watch it fill in.</div>
+      <div class="feat-row">
+        <div class="feat-chip">Savings goal</div>
+        <div class="feat-chip">Expense log</div>
+        <div class="feat-chip">Growth chart</div>
+        <div class="feat-chip">₱ / $ convert</div>
+      </div>
+      <button class="cta" id="welcomeStart">Get started</button>
+    </div>`;
+}
+function bindWelcome(){ document.getElementById('welcomeStart').addEventListener('click', ()=>{ view='setup'; render(); }); }
+
+/* ============== Setup (first goal) ============== */
+function renderSetup(){
+  return `
+    <div class="setup-wrap">
+      <h1>Set your savings goal</h1>
+      <div class="field"><label>What are you saving for?</label><input type="text" id="setupName" placeholder="e.g. PC Build" maxlength="40"></div>
+      <div class="field"><label>Target amount (₱)</label><input type="number" id="setupTarget" placeholder="130000" min="1" inputmode="numeric"></div>
+      <div class="field"><label>Target date</label><input type="date" id="setupDeadline"></div>
+      <div class="err-msg" id="setupErr"></div>
+      <button class="primary-btn" id="setupSubmit">Start tracking</button>
+    </div>`;
+}
+function bindSetup(){
+  document.getElementById('setupSubmit').addEventListener('click', async ()=>{
+    const name = document.getElementById('setupName').value.trim();
+    const target = parseFloat(document.getElementById('setupTarget').value);
+    const deadline = document.getElementById('setupDeadline').value;
+    const err = document.getElementById('setupErr');
+    if(!name || !target || target<=0 || !deadline){
+      err.textContent = 'Please fill in all fields with a valid amount and date.';
+      err.style.display='block'; return;
+    }
+    const g = { id: uid(), name, target, deadline, startDate: todayStr() };
+    goals = [g];
+    await saveGoals(goals);
+    prefs.activeGoalId = g.id;
+    await savePrefs(prefs);
+    view='main'; tab='home';
+    render();
+  });
+}
+
+/* ============== Bottom Nav ============== */
+function renderNav(){
+  return `
+    <div class="navbar">
+      <button class="nav-item ${tab==='home'?'active':''}" data-tab="home">${ICONS.home}<span class="lb">Home</span></button>
+      <button class="nav-item ${tab==='activity'?'active':''}" data-tab="activity">${ICONS.activity}<span class="lb">Activity</span></button>
+      <button class="nav-item ${tab==='settings'?'active':''}" data-tab="settings">${ICONS.settings}<span class="lb">Settings</span></button>
+    </div>`;
+}
+
+/* ============== Goal chip row ============== */
+function renderGoalChips(){
+  const active = activeGoal();
+  const chips = goals.map(g=>{
+    const { saved } = totalsFor(g.id);
+    const pct = g.target>0 ? Math.min(100, saved/g.target*100) : 0;
+    return `<button class="goal-chip ${g.id===active.id?'active':''}" data-goal="${g.id}">
+      <span>${escapeHtml(g.name)}</span><span class="pct">${pct.toFixed(0)}%</span>
+    </button>`;
+  }).join('');
+  return `<div class="goal-chip-row">
+    ${chips}
+    <button class="goal-chip add" id="addGoalChip">${ICONS.plus}<span>New goal</span></button>
+  </div>`;
+}
+
+/* ============== Home ============== */
+function renderHome(){
+  const g = activeGoal();
+  const { saved } = totalsFor(g.id);
+  const target = g.target;
+  const pct = Math.min(100, target>0 ? (saved/target*100) : 0);
+  const remaining = Math.max(0, target - saved);
+  const today = todayStr();
+  const daysLeft = daysBetween(today, g.deadline);
+
+  let deadlineText, weeklyText;
+  if(daysLeft < 0){ deadlineText='Deadline passed'; weeklyText='—'; }
+  else{
+    deadlineText = daysLeft===0 ? 'Today' : `${daysLeft} day${daysLeft===1?'':'s'} left`;
+    const weeksLeft = Math.max(1, daysLeft/7);
+    weeklyText = remaining>0 ? toDisplay(remaining/weeksLeft)+'/wk' : 'Goal reached';
+  }
+
+  const amountDisplay = prefs.hideAmount ? '••••••' : toDisplay(saved);
+  const streak = computeStreak(g.id);
+  const goalActs = goalActivities(g.id);
+  const recent = [...goalActs].sort((a,b)=>b.createdAt-a.createdAt).slice(0,3);
+  const curLabel = prefs.currency==='USD' ? '$' : '₱';
+  const fxNote = prefs.currency==='USD'
+    ? `1 USD ≈ ${peso(prefs.fxRate)}${prefs.fxManual ? ' (manual rate)' : ''}`
+    : '';
+
+  return `
+    <div class="topbar">
+      <div class="who">
+        <div class="avatar">${initials(g.name)}</div>
+        <div class="txt">
+          <div class="hi">Welcome back</div>
+          <div class="name">${escapeHtml(g.name)}</div>
+        </div>
+      </div>
+      <button class="bell" id="goSettings">${ICONS.settings}</button>
+    </div>
+
+    ${renderGoalChips()}
+
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-label">Total saved</div>
+        <div class="hero-top-actions">
+          <button class="cur-btn" id="toggleCurrency" title="Switch currency">${curLabel}</button>
+          <button class="eye-btn" id="toggleAmount">${prefs.hideAmount ? ICONS.eyeOff : ICONS.eye}</button>
+        </div>
+      </div>
+      <div class="hero-amount">${amountDisplay}</div>
+      <div class="hero-sub-row">
+        <div class="of">of ${toDisplay(target)} goal</div>
+        <div class="hero-pct">${pct.toFixed(0)}%</div>
+      </div>
+      ${fxNote ? `<div class="hero-fx-note">${fxNote}</div>` : ''}
+      ${streak>=2 ? `<div class="streak-note">🔥 ${streak}-day saving streak</div>` : ''}
+      <div class="hero-actions">
+        <button class="hero-btn primary" id="openSaving">${ICONS.plus} Add savings</button>
+        <button class="hero-btn ghost" id="openExpense">${ICONS.minus} Add expense</button>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="t">Goal progress</div></div>
+    <div class="card">
+      <div class="stepper-row">
+        <div class="step-dot on">${ICONS.check}</div>
+        <div class="step-line"><div class="fill" id="stepFill" style="width:${pct}%"></div></div>
+        <div class="step-dot ${pct>=100?'on':''}">${pct>=100?ICONS.check:''}</div>
+      </div>
+      <div class="stepper-labels">
+        <div class="lb">Started<b>${fmtShort(g.startDate || today)}</b></div>
+        <div class="lb">In progress<b>${pct.toFixed(0)}%</b></div>
+        <div class="lb">Goal<b>${fmtShort(g.deadline)}</b></div>
+      </div>
+      <div class="track-row">
+        <div class="track-block"><div class="label">Time left</div><div class="value">${deadlineText}</div></div>
+        <div class="track-block right"><div class="label">To stay on track</div><div class="value">${weeklyText}</div></div>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="t">Savings growth</div></div>
+    <div class="card">${renderChart(g.id)}</div>
+
+    <div class="sec-head">
+      <div class="t">Recent activity</div>
+      ${goalActs.length>0 ? `<button class="see" id="seeAllBtn">See all ${ICONS.chev}</button>` : ''}
+    </div>
+    <div class="card activity-card">
+      ${recent.length===0 ? `<div class="empty-state">${ICONS.activity}<br>No activity yet.<br>Add your first savings entry to get started.</div>` : recent.map(rowHtml).join('')}
+    </div>
+  `;
+}
+
+function animateStepper(){
+  const el = document.getElementById('stepFill');
+  if(!el) return;
+  const w = el.style.width;
+  el.style.width = '0%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.width = w; }));
+}
+
+/* ============== Chart ============== */
+function renderChart(goalId){
+  const savings = goalActivities(goalId).filter(a=>a.type==='saving').sort((a,b)=> a.date.localeCompare(b.date) || a.createdAt-b.createdAt);
+  if(savings.length < 2) return `<div class="chart-empty">Add a couple of savings entries to see your growth line.</div>`;
+
+  let cum=0;
+  const points = savings.map(a=>{ cum+=a.amount; return cum; });
+  const max = Math.max(...points,1);
+  const w=300,h=130,pad=8,n=points.length;
+  const stepX = n>1 ? (w-pad*2)/(n-1) : 0;
+  const coords = points.map((v,i)=>{ const x=pad+i*stepX; const y=h-pad-(v/max)*(h-pad*2); return [x,y]; });
+  const linePath = coords.map((c,i)=>(i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+  const areaPath = linePath + ` L${coords[coords.length-1][0].toFixed(1)},${h-pad} L${coords[0][0].toFixed(1)},${h-pad} Z`;
+  const dots = coords.map(c=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3" fill="#2E7D5B"/>`).join('');
+
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:150px; display:block;">
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E7D5B" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#2E7D5B" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${areaPath}" fill="url(#ag)"/>
+    <path d="${linePath}" fill="none" stroke="#2E7D5B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}
+  </svg>`;
+}
+
+/* ============== Activity row (shared) ============== */
+function rowHtml(a){
+  return `
+    <div class="activity-row" data-id="${a.id}">
+      <div class="a-icon ${a.type}">${a.type==='saving'?ICONS.plus:ICONS.minus}</div>
+      <div class="a-mid">
+        <div class="a-note">${escapeHtml(a.note || (a.type==='saving'?'Savings':'Expense'))}</div>
+        <div class="a-date">${fmtDate(a.date)}</div>
+      </div>
+      <div class="a-right">
+        <div class="badge ${a.type}">${a.type==='saving'?'SAVED':'SPENT'}</div>
+        <div class="a-amount ${a.type}">${a.type==='saving'?'+':'−'}${toDisplay(a.amount)}</div>
+      </div>
+      <button class="a-del" data-del="${a.id}" aria-label="Delete">${ICONS.x}</button>
+    </div>`;
+}
+
+/* ============== Activity page ============== */
+function renderActivityPage(){
+  const g = activeGoal();
+  let list = [...goalActivities(g.id)].sort((a,b)=>b.createdAt-a.createdAt);
+  if(activityFilter!=='all') list = list.filter(a=>a.type===activityFilter);
+  if(activitySearch.trim()) list = list.filter(a=>(a.note||'').toLowerCase().includes(activitySearch.trim().toLowerCase()));
+
+  return `
+    <div class="topbar"><div class="who"><div class="txt"><div class="name" style="font-size:22px;">Activity</div><div class="hi">${escapeHtml(g.name)}</div></div></div></div>
+    <div class="search-row">
+      ${ICONS.search}
+      <input type="text" id="searchInput" placeholder="Search notes" value="${escapeHtml(activitySearch)}">
+    </div>
+    <div class="filter-row">
+      <button class="filter-chip ${activityFilter==='all'?'active':''}" data-filter="all">All</button>
+      <button class="filter-chip ${activityFilter==='saving'?'active':''}" data-filter="saving">Savings</button>
+      <button class="filter-chip ${activityFilter==='expense'?'active':''}" data-filter="expense">Expenses</button>
+    </div>
+    <div class="card activity-card">
+      ${list.length===0 ? `<div class="empty-state">${ICONS.search}<br>No entries here yet.</div>` : list.map(rowHtml).join('')}
+    </div>
+  `;
+}
+
+/* ============== Settings page ============== */
+function renderSettingsPage(){
+  const goalRows = goals.map(g=>{
+    const { saved } = totalsFor(g.id);
+    return `
+      <div class="settings-row" data-goal-edit="${g.id}">
+        <div class="row-main">
+          <div><div class="lbl">${escapeHtml(g.name)}</div><div class="sub">${toDisplay(saved)} of ${toDisplay(g.target)} · ${fmtShort(g.deadline)}</div></div>
+          ${ICONS.chev}
+        </div>
+        <button class="g-del" data-goal-del="${g.id}" aria-label="Delete goal">${ICONS.trash}</button>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="topbar"><div class="who"><div class="txt"><div class="name" style="font-size:22px;">Settings</div></div></div></div>
+
+    <div class="sec-head"><div class="t">Your goals</div></div>
+    <div class="card" style="padding:4px 10px;">
+      ${goalRows}
+      <div class="settings-row add-goal" id="addGoalRow" style="border-bottom:none;">
+        <div><div class="lbl">+ Add new goal</div><div class="sub">Track another target separately</div></div>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="t">Appearance</div></div>
+    <div class="card" style="padding:4px 14px;">
+      <div class="cur-switch">
+        <button class="theme-opt ${prefs.theme!=='dark'?'active':''}" data-theme-choice="light">☀️ Light</button>
+        <button class="theme-opt ${prefs.theme==='dark'?'active':''}" data-theme-choice="dark">🌙 Dark</button>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="t">Currency</div></div>
+    <div class="card" style="padding:4px 14px;">
+      <div class="cur-switch">
+        <button class="cur-opt ${prefs.currency==='PHP'?'active':''}" data-cur="PHP">₱ PHP</button>
+        <button class="cur-opt ${prefs.currency==='USD'?'active':''}" data-cur="USD">$ USD</button>
+      </div>
+      <div class="fx-row">
+        <div>
+          <div class="fx-rate">1 USD = ${peso(prefs.fxRate)}</div>
+          <div class="fx-meta">${prefs.fxManual ? 'Manual rate' : 'Live rate'} · updated ${timeAgo(prefs.fxUpdatedAt)}</div>
+        </div>
+        <button class="fx-refresh" id="fxRefreshBtn" ${fxLoading?'disabled':''}>${fxLoading?'Refreshing…':'Refresh rate'}</button>
+      </div>
+      <div class="fx-manual">
+        <div class="lbl">No internet? Set the rate yourself</div>
+        <div class="fx-manual-row">
+          <input type="number" id="manualFxInput" placeholder="e.g. 58.50" min="1" step="0.01" value="${prefs.fxRate}">
+          <button id="manualFxSave">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="t">Data</div></div>
+    <div class="card" style="padding:14px 18px 4px;">
+      <div class="data-btn-row">
+        <button class="data-btn" id="exportBtn">⬇ Export backup</button>
+        <button class="data-btn" id="importBtn">⬆ Import backup</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+      <div class="settings-row danger" id="resetRow">
+        <div><div class="lbl">Reset all data</div><div class="sub">Deletes every goal and entry</div></div>
+        ${ICONS.trash}
+      </div>
+    </div>
+    <div style="text-align:center; color:var(--sub); font-size:12px; margin-top:30px;">Milestone · saved on this device</div>
+  `;
+}
+
+/* ============== Global bindings ============== */
+function bindGlobal(){
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ tab = btn.getAttribute('data-tab'); render(); });
+  });
+
+  if(tab==='home'){
+    document.getElementById('goSettings').addEventListener('click', ()=>{ tab='settings'; render(); });
+    document.getElementById('toggleAmount').addEventListener('click', async ()=>{
+      prefs.hideAmount = !prefs.hideAmount; await savePrefs(prefs); render();
+    });
+    document.getElementById('toggleCurrency').addEventListener('click', async ()=>{
+      prefs.currency = prefs.currency==='USD' ? 'PHP' : 'USD';
+      await savePrefs(prefs); render();
+    });
+    document.getElementById('openSaving').addEventListener('click', ()=>openEntrySheet('saving'));
+    document.getElementById('openExpense').addEventListener('click', ()=>openEntrySheet('expense'));
+    const seeAll = document.getElementById('seeAllBtn');
+    if(seeAll) seeAll.addEventListener('click', ()=>{ tab='activity'; render(); });
+
+    document.querySelectorAll('.goal-chip[data-goal]').forEach(chip=>{
+      chip.addEventListener('click', async ()=>{
+        prefs.activeGoalId = chip.getAttribute('data-goal');
+        await savePrefs(prefs); render();
+      });
+    });
+    const addChip = document.getElementById('addGoalChip');
+    if(addChip) addChip.addEventListener('click', openAddGoalSheet);
+  }
+
+  if(tab==='activity'){
+    document.getElementById('searchInput').addEventListener('input', (e)=>{
+      activitySearch = e.target.value; render();
+      setTimeout(()=>{ const el=document.getElementById('searchInput'); if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } },0);
+    });
+    document.querySelectorAll('.filter-chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{ activityFilter = chip.getAttribute('data-filter'); render(); });
+    });
+  }
+
+  if(tab==='settings'){
+    document.querySelectorAll('[data-goal-edit]').forEach(row=>{
+      row.querySelector('.row-main').addEventListener('click', ()=>openEditGoal(row.getAttribute('data-goal-edit')));
+    });
+    document.querySelectorAll('[data-goal-del]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{ e.stopPropagation(); confirmDeleteGoal(btn.getAttribute('data-goal-del')); });
+    });
+    document.getElementById('addGoalRow').addEventListener('click', openAddGoalSheet);
+    document.getElementById('resetRow').addEventListener('click', confirmResetAll);
+
+    document.querySelectorAll('.cur-opt').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        prefs.currency = btn.getAttribute('data-cur'); await savePrefs(prefs); render();
+      });
+    });
+    document.querySelectorAll('.theme-opt').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ setTheme(btn.getAttribute('data-theme-choice')); });
+    });
+    document.getElementById('exportBtn').addEventListener('click', exportBackup);
+    document.getElementById('importBtn').addEventListener('click', ()=>{
+      document.getElementById('importFile').click();
+    });
+    document.getElementById('importFile').addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(file) importBackupFile(file);
+      e.target.value = '';
+    });
+    document.getElementById('fxRefreshBtn').addEventListener('click', async ()=>{
+      render(); // show "Refreshing…" state
+      const ok = await fetchFxRate();
+      showToast(ok ? 'Exchange rate updated' : 'Could not fetch rate — check your connection');
+      render();
+    });
+    document.getElementById('manualFxSave').addEventListener('click', async ()=>{
+      const val = parseFloat(document.getElementById('manualFxInput').value);
+      if(!val || val<=0){ showToast('Enter a valid rate'); return; }
+      prefs.fxRate = val; prefs.fxManual = true; prefs.fxUpdatedAt = Date.now();
+      await savePrefs(prefs); render();
+      showToast('Rate saved');
+    });
+  }
+
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); confirmDelete(btn.getAttribute('data-del')); });
+  });
+}
+
+/* ============== Sheets ============== */
+function openSheet(html){
+  document.getElementById('sheet').innerHTML = `<div class="sheet-handle"></div>` + html;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
+document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeSheet(); });
+
+function openEntrySheet(type){
+  const isSaving = type==='saving';
+  let entryCurrency = prefs.currency;
+  openSheet(`
+    <h2>${isSaving?'Add savings':'Add expense'}</h2>
+    <div class="field">
+      <label>Amount</label>
+      <input type="number" id="entryAmount" placeholder="0" min="0.01" step="0.01" inputmode="decimal" autofocus>
+      <div class="amt-cur-row">
+        <button type="button" class="amt-cur-btn ${entryCurrency==='PHP'?'active':''}" id="amtCurPHP">₱ PHP</button>
+        <button type="button" class="amt-cur-btn ${entryCurrency==='USD'?'active':''}" id="amtCurUSD">$ USD</button>
+      </div>
+      <div class="quick-amt-row" id="quickAmtRow"></div>
+      <div class="amt-conv-hint" id="amtConvHint"></div>
+    </div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="entryNote" placeholder="${isSaving?'e.g. Weekly savings':'e.g. Bought a cable'}" maxlength="40"></div>
+    <div class="field"><label>Date</label><input type="date" id="entryDate" value="${todayStr()}" max="${todayStr()}"></div>
+    <div class="err-msg" id="entryErr"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" id="entryCancel">Cancel</button>
+      <button class="sheet-btn primary" id="entrySubmit">Save</button>
+    </div>`);
+
+  const PRESETS = { PHP:[100,500,1000,2000], USD:[2,5,10,20] };
+  function renderQuickAmounts(){
+    const row = document.getElementById('quickAmtRow');
+    row.innerHTML = PRESETS[entryCurrency].map(v=>
+      `<button type="button" class="quick-amt-chip" data-amt="${v}">${entryCurrency==='USD'?'$':'₱'}${v}</button>`
+    ).join('');
+    row.querySelectorAll('.quick-amt-chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.getElementById('entryAmount').value = btn.getAttribute('data-amt');
+        updateHint();
+        hapticBuzz(10);
+      });
+    });
+  }
+  renderQuickAmounts();
+
+  function updateHint(){
+    const amtInput = document.getElementById('entryAmount');
+    const amt = parseFloat(amtInput.value);
+    const hint = document.getElementById('amtConvHint');
+    if(!amt || amt<=0){ hint.textContent=''; return; }
+    if(entryCurrency==='USD'){
+      hint.textContent = `≈ ${peso(amt * (prefs.fxRate||58.5))}`;
+    }else{
+      hint.textContent = `≈ ${usd(amt / (prefs.fxRate||58.5))}`;
+    }
+  }
+  document.getElementById('entryAmount').addEventListener('input', updateHint);
+  document.getElementById('amtCurPHP').addEventListener('click', ()=>{
+    entryCurrency='PHP';
+    document.getElementById('amtCurPHP').classList.add('active');
+    document.getElementById('amtCurUSD').classList.remove('active');
+    updateHint(); renderQuickAmounts();
+  });
+  document.getElementById('amtCurUSD').addEventListener('click', ()=>{
+    entryCurrency='USD';
+    document.getElementById('amtCurUSD').classList.add('active');
+    document.getElementById('amtCurPHP').classList.remove('active');
+    updateHint(); renderQuickAmounts();
+  });
+
+  document.getElementById('entryCancel').addEventListener('click', closeSheet);
+  document.getElementById('entrySubmit').addEventListener('click', async ()=>{
+    const rawAmount = parseFloat(document.getElementById('entryAmount').value);
+    const note = document.getElementById('entryNote').value.trim();
+    const date = document.getElementById('entryDate').value;
+    const err = document.getElementById('entryErr');
+    if(!rawAmount || rawAmount<=0 || !date){ err.textContent='Enter a valid amount and date.'; err.style.display='block'; return; }
+    const amountPHP = entryCurrency==='USD' ? rawAmount * (prefs.fxRate||58.5) : rawAmount;
+    const g = activeGoal();
+    activities.push({
+      id:uid(), goalId:g.id, type, amount:amountPHP,
+      enteredAmount: rawAmount, enteredCurrency: entryCurrency,
+      note, date, createdAt:Date.now()
+    });
+    await saveActivities(activities);
+    closeSheet(); render();
+    showToast(isSaving ? 'Savings added' : 'Expense logged');
+    hapticBuzz(isSaving ? [15,30,15] : 15);
+  });
+}
+
+function openAddGoalSheet(){
+  openSheet(`
+    <h2>New savings goal</h2>
+    <div class="field"><label>What are you saving for?</label><input type="text" id="newGoalName" placeholder="e.g. Emergency fund" maxlength="40" autofocus></div>
+    <div class="field"><label>Target amount (₱)</label><input type="number" id="newGoalTarget" placeholder="130000" min="1" inputmode="numeric"></div>
+    <div class="field"><label>Target date</label><input type="date" id="newGoalDeadline" value="${todayStr()}"></div>
+    <div class="err-msg" id="newGoalErr"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" id="newGoalCancel">Cancel</button>
+      <button class="sheet-btn primary" id="newGoalSubmit">Create goal</button>
+    </div>`);
+  document.getElementById('newGoalCancel').addEventListener('click', closeSheet);
+  document.getElementById('newGoalSubmit').addEventListener('click', async ()=>{
+    const name = document.getElementById('newGoalName').value.trim();
+    const target = parseFloat(document.getElementById('newGoalTarget').value);
+    const deadline = document.getElementById('newGoalDeadline').value;
+    const err = document.getElementById('newGoalErr');
+    if(!name || !target || target<=0 || !deadline){ err.textContent='Please fill in all fields with a valid amount and date.'; err.style.display='block'; return; }
+    const g = { id: uid(), name, target, deadline, startDate: todayStr() };
+    goals.push(g);
+    await saveGoals(goals);
+    prefs.activeGoalId = g.id;
+    await savePrefs(prefs);
+    closeSheet(); tab='home'; render();
+    showToast('Goal created');
+  });
+}
+
+function openEditGoal(goalId){
+  const g = goals.find(x=>x.id===goalId);
+  if(!g) return;
+  openSheet(`
+    <h2>Edit goal</h2>
+    <div class="field"><label>What are you saving for?</label><input type="text" id="editName" value="${escapeHtml(g.name)}" maxlength="40"></div>
+    <div class="field"><label>Target amount (₱)</label><input type="number" id="editTarget" value="${g.target}" min="1" inputmode="numeric"></div>
+    <div class="field"><label>Target date</label><input type="date" id="editDeadline" value="${g.deadline}"></div>
+    <div class="err-msg" id="editErr"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" id="editCancel">Cancel</button>
+      <button class="sheet-btn primary" id="editSubmit">Save changes</button>
+    </div>`);
+  document.getElementById('editCancel').addEventListener('click', closeSheet);
+  document.getElementById('editSubmit').addEventListener('click', async ()=>{
+    const name = document.getElementById('editName').value.trim();
+    const target = parseFloat(document.getElementById('editTarget').value);
+    const deadline = document.getElementById('editDeadline').value;
+    const err = document.getElementById('editErr');
+    if(!name || !target || target<=0 || !deadline){ err.textContent='Please fill in all fields with a valid amount and date.'; err.style.display='block'; return; }
+    Object.assign(g, { name, target, deadline });
+    await saveGoals(goals);
+    closeSheet(); render();
+    showToast('Goal updated');
+  });
+}
+
+let pendingDelete = null; // { item, index, timer, commit }
+
+function confirmDelete(id){
+  const idx = activities.findIndex(a=>a.id===id);
+  if(idx===-1) return;
+
+  // if an earlier pending delete is still waiting, finalize it now before starting a new one
+  if(pendingDelete){ clearTimeout(pendingDelete.timer); pendingDelete.commit(); }
+
+  const item = activities[idx];
+  activities.splice(idx, 1);
+  render();
+  hapticBuzz(15);
+
+  pendingDelete = {
+    item, index: idx,
+    commit: async ()=>{ await saveActivities(activities); pendingDelete = null; }
+  };
+  pendingDelete.timer = setTimeout(()=>{ if(pendingDelete) pendingDelete.commit(); }, 4000);
+
+  showUndoToast('Entry deleted', ()=>{
+    if(!pendingDelete) return;
+    clearTimeout(pendingDelete.timer);
+    activities.splice(pendingDelete.index, 0, pendingDelete.item);
+    pendingDelete = null;
+    render();
+    hapticBuzz(10);
+  });
+}
+
+function confirmDeleteGoal(goalId){
+  const g = goals.find(x=>x.id===goalId);
+  if(!g) return;
+  openSheet(`
+    <h2>Delete "${escapeHtml(g.name)}"?</h2>
+    <p style="color:var(--sub); font-size:14px; margin-top:-8px;">This deletes the goal and every entry logged under it. This can't be undone.</p>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" id="delGoalCancel">Cancel</button>
+      <button class="sheet-btn primary danger" id="delGoalConfirm">Delete</button>
+    </div>`);
+  document.getElementById('delGoalCancel').addEventListener('click', closeSheet);
+  document.getElementById('delGoalConfirm').addEventListener('click', async ()=>{
+    goals = goals.filter(x=>x.id!==goalId);
+    activities = activities.filter(a=>a.goalId!==goalId);
+    await saveGoals(goals);
+    await saveActivities(activities);
+    if(prefs.activeGoalId===goalId){
+      prefs.activeGoalId = goals[0] ? goals[0].id : null;
+      await savePrefs(prefs);
+    }
+    closeSheet();
+    if(goals.length===0){ view='welcome'; tab='home'; }
+    render();
+    showToast('Goal deleted');
+  });
+}
+
+function confirmResetAll(){
+  openSheet(`
+    <h2>Reset all data?</h2>
+    <p style="color:var(--sub); font-size:14px; margin-top:-8px;">This deletes every goal and logged entry. This can't be undone.</p>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" id="resetCancel">Cancel</button>
+      <button class="sheet-btn primary danger" id="resetConfirm">Reset</button>
+    </div>`);
+  document.getElementById('resetCancel').addEventListener('click', closeSheet);
+  document.getElementById('resetConfirm').addEventListener('click', async ()=>{
+    goals=[]; activities=[]; tab='home'; view='welcome';
+    prefs.activeGoalId=null;
+    await saveGoals([]); await saveActivities([]); await savePrefs(prefs);
+    closeSheet(); render();
+  });
+}
+
+/* ============== Init ============== */
+(async function init(){
+  try{
+    goals = await loadGoals();
+    activities = await loadActivities();
+    prefs = await loadPrefs();
+
+    // migrate legacy activities (no goalId) onto the single migrated goal
+    if(goals.length && activities.some(a=>!a.goalId)){
+      activities = activities.map(a=> a.goalId ? a : { ...a, goalId: goals[0].id });
+      await saveActivities(activities);
+    }
+    if(!prefs.activeGoalId || !goals.find(g=>g.id===prefs.activeGoalId)){
+      prefs.activeGoalId = goals[0] ? goals[0].id : null;
+      await savePrefs(prefs);
+    }
+  }catch(e){ goals=[]; activities=[]; }
+
+  view = goals.length ? 'main' : 'welcome';
+  document.body.setAttribute('data-theme', prefs.theme==='dark' ? 'dark' : 'light');
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='block';
+  render();
+
+  // refresh exchange rate in the background if stale (and not manually overridden)
+  if(!prefs.fxManual && (!prefs.fxUpdatedAt || Date.now()-prefs.fxUpdatedAt > 6*3600*1000)){
+    fetchFxRate().then(ok=>{ if(ok) render(); });
+  }
+})();
+</script>
+<script>
+  // PWA: register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service worker registered:', reg.scope))
+        .catch(err => console.log('Service worker registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
